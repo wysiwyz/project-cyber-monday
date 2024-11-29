@@ -1,0 +1,93 @@
+kubectl config use-context workload-prod
+ssh cluster1-node1
+
+# Time-saving tip: Falco related Qs are better solved at the end (complicated steps)
+systemctl status Falco
+
+# Verify falco config
+ls -lrt /etc/falco
+cat /etc/falco/falco.yaml | grep -i output -A3
+# syslog output,  file output, std output - now that we know the logs are being written to the syslog
+cat /var/log/syslog | grep falco | grep nginx
+# found Error Package management process launched in container
+
+# At another terminal tab
+ssh cluster1-node1
+# grab the container id found earlier
+crictl ps -id f99cb68497f7
+crictl pods -id <grab and paste the pod id here>
+# check which namespace this pod is
+
+# Open yet another terminal tab 
+k -n team-blue get pods,deployments.apps
+
+
+cat /var/log/syslog | grep falco | grep etc
+# found Error File below /etc opened for writing ... grab the container id
+
+crictl ps -id <paste the container id>
+crictl pods -id <paste the pod id>
+# this pod is running on team-purple
+
+k -n team-purple get pods,deployments.apps
+
+# At cluster1-node1
+vi /etc/falco/falco_rules.
+falco_rules.yaml    falco_rules.local.yaml 
+# Another time-saving Falco tips - check if there are any rule-override files
+
+cp /etc/falco/falco_rules.yaml /etc/falco/falco_rules.local.yaml
+# 為啥複製出的名字跟既有的一樣
+
+vi /etc/falco/falco_rules.local.yaml
+# search /Package management process launched in container
+# get rid of login uid, commands, image specified stuff
+
+  output: >
+    Package management process launched in container ( %container.id,%container.name,%user.name )
+
+# Tips: Falco documentations are allowed in CKS exam https://falco.org/docs/
+The Falco Project
+  - Reference
+    - Falco Rules
+      - Fields for conditions and outputs
+
+# search for nanosecond part, got "evt.time"
+
+  output: >
+    Package management process launched in container ( %evt.time,%container.id,%container.name,%user.name )
+
+# save falco_rules.local.yaml and exit
+systemctl restart falco.service
+systemctl status falco.service
+
+# look at the logs again
+cat /var/log/syslog | grep falco | grep nginx
+
+# copy logs of some of the `Error Package management process launched in container` and save 
+vi /opt/course/2/falco.log
+
+# edit the log output formats (only need the parts between `(` and `)` that verifies the output change)
+
+# best way to do is ---
+  output: >
+    %evt.time,%container.id,%container.name,%user.name
+
+# comeback and restart
+systemctl restart falco.service
+systemctl status falco.service
+cat /var/log/syslog | grep falco | grep nginx
+
+# now we have much better log output format, copy the new formats (duration at least 30 seconds) and saved it 
+# although there are still prefix we need to remove <Date><nodeName><falco[some-id-i-dont-know]> before the evt.time
+vi /opt/course/2/falco.log
+whoami
+mkdir -p /opt/course/2/
+sudo touch /opt/course/2/falco.log
+sudo vi /opt/course/2/falco.log
+
+# scale the replicas of the deployments that control the offending pods to zero
+k -n team-blue get deploy webapi 
+k -n team-blue scale deploy webapi --replicas 0
+k -n team-purple get deploy rating-service
+k -n team-purple scale deploy rating-service --replicas 0

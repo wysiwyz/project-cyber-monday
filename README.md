@@ -10,7 +10,7 @@ Now that the CKAD and CKA are taken down, this repository is created to keep tra
 
 3. Purchase 50% off exam vouchers for CKS/KCNA/KCSA (USD 447.5) on Cyber Monday
 
-4. Finish KK_KCNA and KK_KCSA and take nodes by 8 Dec
+4. Finish KK_KCNA and KK_KCSA and take notes by 8 Dec
 
 5. Finish KK_CKS lectures by 15 Dec
 
@@ -58,7 +58,7 @@ You have access to multiple clusters from your main terminal through kubectl con
 
 From the kubeconfig extract the certificate of user restricted@infra-prod and write it decoded to /opt/course/1/cert.
 
-Keywords: 
+Keywords: `client-certificate-data`, `base64 decode`
 
 [Solution #1](./sol_01.txt)
 
@@ -80,7 +80,7 @@ No other information should be in any line. Collect the logs for at least 30 sec
 Afterwards remove the threads (both 1 and 2) by scaling the replicas of the Deployments that control the offending Pods down to 0.
 
 
-Keywords:
+Keywords: `Falco`, `fields for conditions and outputs`, `falco_rules`
 
 [Solution #2](./sol_02.txt)
 

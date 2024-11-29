@@ -1,0 +1,18 @@
+k config get-contexts
+k config get-contexts -o name > /opt/course/1/contexts
+cat /opt/course/1/contexts
+
+k config view
+# grab the cert file of user restricted@infra-prod
+- name:
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+
+# but the data is OMITTED
+k config view --raw | grep restricted@infra-prod -A5
+
+# copy the client-certificate-data
+echo <paste-it-here> | base64 -d
+echo <paste-it-here> | base64 -d > /opt/course/1/cert
+cat /opt/course/1/cert
