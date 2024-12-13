@@ -4,19 +4,63 @@ Now that the CKAD and CKA are taken down, this repository is created to keep tra
 
 ## Plan
 
-1. Watch KCNA, KCSA, Killer simulator videos and take notes - 24 of these bad guys
+1. Watch CKS Killer simulator videos and take notes - 24 of these bad guys
 
-2. Change KK plan to standard before black friday deals (offer ends 1 Dec)
+2. Finish KK_Course by 15 Dec
 
-3. Purchase 50% off exam vouchers for CKS/KCNA/KCSA (USD 447.5) on Cyber Monday
+3. Acquired KCNA and KCSA by 12 Dec ✅
 
-4. Finish KK_KCNA and KK_KCSA and take notes by 8 Dec
+4. Rework KK_CKS labs before 22 Dec
 
-5. Finish KK_CKS lectures by 15 Dec
+5. Take on the first Killer_sh_CKS before 22 Dec
 
-6. Rework KK_CKS labs by 22 Dec
+## Important URL
 
-7. Take on the first Killer_sh_CKS by 22 Dec
+[Securing a cluster](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/)
+
+[Network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+
+[CIS benchmark Kubernetes](https://www.cisecurity.org/benchmark/kubernetes)
+
+[Specify TLS secret in an Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)
+
+[Restrict cloud metadata API access](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/#restricting-cloud-metadata-api-access)
+
+[Deploy Kubernetes dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/#accessing-the-dashboard-ui)
+
+[Control access to the Kubernetes API](https://kubernetes.io/docs/concepts/security/controlling-access/)
+
+[API access control - Anonymous requests](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#anonymous-requests)
+
+[Use RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+
+[User the default service account to access the API server](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server)
+
+[kubeadm upgrade](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-upgrade/)
+
+[Authenticating users in K8s](https://kubernetes.io/docs/reference/access-authn-authz/authentication/)
+
+[Restrict Container Access to Resources with AppArmor](https://kubernetes.io/docs/tutorials/security/apparmor/)
+
+[Restrice Container Syscalls with Seccomp](https://kubernetes.io/docs/tutorials/security/seccomp/)
+
+[OPA Gatekeeper: Policy and Governance for K8s](https://kubernetes.io/blog/2019/08/06/opa-gatekeeper-policy-and-governance-for-kubernetes/)
+
+[Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+
+[Kubernetes Secret](https://kubernetes.io/docs/concepts/configuration/secret/)
+
+[Runtime Class](https://kubernetes.io/docs/concepts/containers/runtime-class/)
+
+[Manage TLS Certificates in a Cluster](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/)
+
+[Why do I need admission controllers](https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/#why-do-i-need-admission-controllers)
+
+[ImagePolicyWebhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#imagepolicywebhook)
+
+[11 Ways (not) to Get Hacked](https://kubernetes.io/blog/2018/07/18/11-ways-not-to-get-hacked/#10-scan-images-and-run-ids)
+
+[The Falco Project](https://falco.org/docs/)
 
 
 ## Execution record
