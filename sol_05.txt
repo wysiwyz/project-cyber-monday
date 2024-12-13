@@ -1,0 +1,23 @@
+ssh cluster2-controlplane1
+
+# check the summary (passes, fails, warnings)
+kube-bench run --targets=master
+
+kube-bench run --targets=master | grep kube-controller -A3
+
+# We then saw 1.3.2 which suggest to set `--profiling=false`, so we modify the kube-controller-manager yaml file
+vi /etc/kubernetes/manifests/kube-controller-manager.yaml
+...
+spec:
+  containers:
+    - command:
+      ...
+      - --profiling=false  # add this
+
+# watch for the controller manager to restart, then run kube-bench again
+kube-bench run --targets=master | grep kube-controller -A3
+
+---
+
+ls -lh /var/lib | grep etcd
+stat -c %U:%G /var/lib/etcd

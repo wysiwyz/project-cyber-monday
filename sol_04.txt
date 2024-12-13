@@ -1,0 +1,22 @@
+k edit ns team-redis
+# configure the request label
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: team-red
+    pod-security.kubernetes.io/enforce: baseline  # add this
+  name: team-red
+...
+
+# with the tag, the PodSecurityAdmissionController will be able to pick up on the change
+k -n team-red get pod
+k -n team-red delete pod container-host-hacker-xxxxxxxxx-xxxxx
+
+# usually rs or deploy would recreate the pod if deleted, but it didn't, check why
+k -n team-red get rs
+k -n team-red describe rs container-host-hacker-xxxxxxxxx
+
+# check the events, we saw the "FailedCreate" reason, with message "forbidden: violates PodSecurity "baseline:latest": hostPath volumes (volume "containerdata")
+
+echo "<paste the type, reason, age, from, message of the event here>" >> /opt/course/4/logs

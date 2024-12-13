@@ -1,0 +1,27 @@
+ssh cluster1-controlplane
+ps aux | grep kube-apiserver
+# found the argument flag kubernetes-service-node-port
+
+# check service and see if it's type reflected the same of nodePort
+kubectl get svc
+
+# create a copy as backup
+cp /etc/kubernetes/manifests/kube-apiserver.yaml ~/03_kube-apiserver.yaml
+
+# remove unsecure settings
+vi /etc/kubernetes/manifests/kube-apiserver.yaml 
+...
+spec:
+  containers:
+  - command:
+  ...
+    # - --kubernetes-service-node-port=31000  # delete this argument or set to 0
+
+# watch for apiserver to start up again
+kubectl -n kube-system get pod | grep apiserver
+ps aux | grep kube-apiserver | grep node-port
+
+# after restarting apiserver, we need to delete old kubernetes service
+kubectl delete svc kubernetes
+# wait for a few seconds
+kubectl get svc

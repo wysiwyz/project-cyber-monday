@@ -133,12 +133,13 @@ Keywords: `Falco`, `fields for conditions and outputs`, `falco_rules`
 
 You received a list from the DevSecOps team which performed a security investigation of the k8s cluster1 (workload-prod). The list states the following about the apiserver setup:
 
-Accessible through a NodePort Service
+- Accessible through a NodePort Service
+
 Change the apiserver setup so that:
 
-Only accessible through a ClusterIP Service
+- Only accessible through a ClusterIP Service
 
-Keywords:
+Keywords: `kubernetes-service-node-port`, `service/kubernetes`
 
 [Solution #3](./sol_03.txt)
 
@@ -151,7 +152,7 @@ To prevent this configure Namespace team-red to enforce the baseline Pod Securit
 
 Check the ReplicaSet events and write the event/log lines containing the reason why the Pod isn't recreated into /opt/course/4/logs.
 
-Keywords:
+Keywords: `PodSecurityStandard`
 
 [Solution #4](./sol_04.txt)
 
@@ -174,7 +175,7 @@ On the worker node ensure (correct if necessary) that the CIS recommendations ar
 
 4. The --client-ca-file argument of the kubelet
 
-Keywords:
+Keywords: `CIS benchmark`, `kube-bench`, `--profiling`
 
 [Solution #5](./sol_05.txt)
 
