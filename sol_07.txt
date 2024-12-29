@@ -1,0 +1,52 @@
+k config use-context infra-prod
+k get constraint
+k get blacklistimages.constraints.gatekeeper.sh/pod-trusted-images
+k get blacklistimages.constraints.gatekeeper.sh/pod-trusted-images -oyaml
+
+k get constrainttemplate
+k get constrainttemplate blacklistimages
+k get constrainttemplate blacklistimages -oyaml
+
+# check spec section
+spec:
+  crd:
+    spec: 
+      names:
+        kind: BlacklistImages
+  targets:
+  - rego: |
+      package k8strustedimages
+
+      images {
+        image := input.review.object.spec.containers[...].image
+        not startswith(image, "docker-fake.io/")
+        not startswith(image, "google-gcr-fake.com/")
+      }
+
+      violation[("msg": msg)] {
+        not images
+        msg := "not trusted image!"
+      }
+    target: admission.k8s.gatekeeper.sh
+
+k edit constrainttemplate blacklistImages
+# add one more line in the images block
+      images {
+        image := input.review.object.spec.containers[...].image
+        not startswith(image, "docker-fake.io/")
+        not startswith(image, "google-gcr-fake.com/")
+        not startswith(image, "very-bad-registry.com/")
+      }
+
+# esc and save
+# check if the changes are reflected
+k get constrainttemplate blacklistimages -oyaml
+
+# run an image from this newly blacklisted registry
+k get pods 
+k describe po untrusted-5579...
+# At event message: Back-off pulling image "very-bad-registry.com/image"
+
+# create a new pod
+k run test --image="very-bad-registry.com/image"
+# Error: admission webhook "validation.gatekeeper.sh" denied the request

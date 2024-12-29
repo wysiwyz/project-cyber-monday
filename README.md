@@ -196,7 +196,7 @@ kubelet 4be40f2440619e990897cf956c32800dc96c2c983bf64519854a3309fa5aa21827991559
 
 Delete those binaries that don't match with the sha512 values above.
 
-Keywords:
+Keywords: `sha512sum`
 
 [Solution #6](./sol_06.txt)
 
@@ -209,7 +209,7 @@ Test it by creating a single Pod using image very-bad-registry.com/image in Name
 
 You can also verify your changes by looking at the existing Deployment untrusted in Namespace default, it uses an image from the new untrusted source. The OPA contraint should throw violation messages for this one.
 
-Keywords:
+Keywords: `constraint`, `constrainttemplate`, `rego`
 
 [Solution #6](./sol_07.txt)
 
@@ -238,7 +238,7 @@ You are asked to make it more secure by:
 
 5. Allow only cluster internal access
 
-Keywords:
+Keywords: `
 
 [Solution #8](./sol_08.txt)
 

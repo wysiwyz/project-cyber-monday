@@ -1,0 +1,61 @@
+k -n kubernetes-dashboard get pods,svc,deployments.apps
+...
+service/kubernetes-dashboard  ...
+# connect through http protocol at port 9090:30073/TCP,443:32324/TCP
+
+k get nodes -owide
+# grab any of these node IP
+curl http://192.168.100.12:30973
+
+# how to make it secure?
+k -n kubernetes-dashboard edit deployments.apps kubernetes-dashboard
+# go the the section which accepts arguments
+spec:
+  containers:
+  - args:
+    - --namespace=kubernetes-dashboard
+    - --enable-skip-login=false     # delete this line or set it to false
+    - --authentication-mode=token   # change from basic to token, or you can simply delete this line
+    - --auto-generate-certificates  # add this line to generate self-signed cert
+
+# before changing any of these configuration, it's recommended to take a backup in case that you missed up something
+k -n kubernetes-dashboard get pods,svc,deployments.apps
+
+k -n kubernetes-dashboard edit svc kubernetes-dashboard
+# comment out the field "externalTrafficPolicy"
+...
+spec:
+  clusterIP: 
+  clusterIPs:
+  - 10.104.200.32
+#  externalTrafficPolicy: Cluster
+
+# comment out or delete nodePort fields
+...
+  ports:
+  - name: http
+    # nodePort: 30973
+  - name: https
+    # nodePort: 32324
+
+# change type nodePort to clusterIP
+...
+spec:
+  ...
+  type: clusterIP    
+
+# esc and save
+
+k -n kubernetes-dashbpard get svc
+curl http://192.168.100.2:30973
+curl https://kubernetes-dashboard.kubernetes-dashboard -k
+k run test --image nginx --rm -it -- bash
+root@test:/# curl https://kubernetes-dashboard.kubernetes-dashboard -k
+root@test:/# exit
+
+k -n kubernetes-dashboard get pods,svc,deployments.apps
+
+k -n kubernetes-dashboard edit svc kubernetes-dashboard
+
+k run test --image nginx --rm -it -- bash
+root@test:/# curl http://kubernetes-dashboard.kubernetes-dashboard

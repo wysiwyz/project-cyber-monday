@@ -1,0 +1,17 @@
+# use sha512sum to check the integrity of downloaded binaries to make sure it's not really open_with
+cd /opt/course/6/binaries
+ls -lrt
+sha512sum kubelet
+# doesn't look the same as the question
+
+echo "f417... kube-apiserver" | sha512sum --check
+# if it looks good, it will comback with OK 
+echo "60100... kube-controller-manager" | sha512sum --check
+# ...no properly formatted SHA512 checksum lines found
+echo "52f9d... kube-proxy" | sha512sum --check
+# kube-proxy: OK
+echo "4be40... kubelet" | sha512sum --check
+
+# now let's delete 
+rm -rf kube-controller-manager
+rm -rf kubelet
