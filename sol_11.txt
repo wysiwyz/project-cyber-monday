@@ -1,0 +1,26 @@
+ssh cluster1-controlplane1
+# check if etcdctl is installed and list it's options
+root@cluster1-controlplane1:~# etcdctl
+
+root@cluster1-controlplane1:~# cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep etcd
+  - --etcd-cafile=/etcd/kubernetes/pki/etcd/ca.crt
+  - --etcd-certfile=/etcd/kubernetes/pki/apiserver-etcd-client.crt
+  - -- etcd-keyfile=/etcd/kubernetes/pki/apiserver-etcd-client.key
+
+# query ETCD for the secret value
+root@cluster1-controlplane1:~# ETCDCTL_API=3 etcdctl \
+    --cert /etcd/kubernetes/pki/apiserver-etcd-client.crt \
+    --key /etcd/kubernetes/pki/apiserver-etcd-client.key \
+    --cacert /etcd/kubernetes/pki/etcd/ca.crt \
+    get /registry/secrets/team-green/database-access
+
+# Note: ETCD in K8s stores data under /registry/{type}/{namespace}/{secret-name}
+
+# Reference link: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
+
+cat /registry/secrets/team-green/database-access
+.... {"apiVersion":"v1","data":{"pass":"Y29uZmlkZW50aWFs"},......}
+
+# decode the passowrd
+echo Y29uZmlkZW50aWFs | base64 -d >  /opt/course/11/database-passowrd
+cat /opt/course/11/database-password

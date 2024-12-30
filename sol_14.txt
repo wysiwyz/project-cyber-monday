@@ -1,0 +1,36 @@
+# Refer to below link for many available syscalls
+# https://man7.org/linux/man-pages/man2/syscalls.2.html
+
+k -n team-yellow get pod -owide
+ssh cluster1-node1
+
+# search for pods of deployment collector1
+crictl pods --name collector1
+POD ID          CREATED
+21aacb8f4ca8d   ...
+186631e40104d   ...
+
+# take one pod-id to find it's container
+crictl ps --pod 21aacb8f4ca8d
+CONTAINER ID     IMAGE
+9ea02422f8660    ...
+
+# find the processs name
+crictl inspect 9ea02422f8660 | grep args -A1
+
+# find the PID by the process name
+ps aux | grep collector1-process
+
+# call `strace` to find syscalls
+strace -p <PID>
+# notice it called the forbidden syscall kill(666, SIGTERM)
+
+ps aux | grep collector2-process
+strace -p <PID>
+
+ps aux | grep collector3-process
+strace -p <PID>
+
+k -n team-yellow scale deploy collector1 --replicas 0
+
+# TODO when your environment does not suppport crictl, how to resolve it?

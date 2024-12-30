@@ -1,0 +1,48 @@
+k get node -o wide
+NAME                    STATUS      ROLES      ...  CONTAINER-RUNTIME
+cluster1-controlplane1  READY       control-plane   ...containerd://1.5.2
+cluster1-node1          ...
+cluster1-node2          ...
+
+# notice that all nodes are using containerd
+# but only one node "cluster1-node2" has container engine installed and was configured to support the runsc/gvisor runtime
+
+# Verify
+ssh cluster1-node2
+root@cluster1-node2:~# runsc --version
+runsc version release-20201130.0
+spec: 1.0.1-dev
+
+root@cluster1-node2:~# cat /etc/containerd/config.toml | grep runsc
+[plugins."io.containered.grpc.v1.cri".containerd.runtimes.runsc]
+  runtime_type = "io.containerd.runsc.v1"
+
+# https://kubernetes.io/docs/concepts/containers/runtime-class/
+
+cat <<EOF> 10_rtc.yaml
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+EOF
+k ceate -f 10_rtc.yaml
+
+k -n team-purple run gvisor-test --image=nginx:1.19.2 --dry-run=client -oyaml > 10_pod.yaml
+vi 10_pod.yaml
+...
+spec:
+  nodeName: cluster1-node2   # add this
+  runtimeClassName: gvisor   # add this
+
+k create -f 10_pod.yaml
+
+# verify that the pod uses the gvisor sandbox
+k -n team-purple get pod gvisor-test
+# use dmesg command to checkout kernel message
+k -n team-purple exec gvisor-test -- dmesg
+
+# write the dmesg output into the file
+k -n team-purple exec gvisor-test > /opt/course/10/gvisor-test-dmesg -- dmesg
+# TODO test which command works
+k -n team-purple exec gvisor-test -- dmesg > /opt/course/10/gvisor-test-dmesg

@@ -1,0 +1,79 @@
+# Refer to below link for hack at shopify which was based on revealed information via metadata for nodes
+# https://hackerone.com/reports/341876
+
+k -n metadata-access get pods --show-labels
+# found three pods, and one of them has label role=metadata-accessor
+
+# try to curl the metadata service from each of the three pods
+k exec -it -n metadata-access <first-pod-name> -- curl http://192.168.100.21:32000
+k exec -it -n metadata-access <second-pod-name> -- curl http://192.168.100.21:32000
+k exec -it -n metadata-access <third-pod-name> -- curl http://192.168.100.21:32000
+
+# all three of them can access the metadata server, let's create a netpol to deny access to the specific IP
+vi 13_metadata-deny.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: metadata-deny
+  namespace: metadata-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 192.168.100.21/32  # TODO why is this 32 instead of 24?
+# esc and save
+
+k apply -f 13_metadata-deny.yaml
+
+# Refer to the default-deny NetworkPolicy
+# https://kubernetes.io/docs/concepts/services-networking/network-policies/#default-deny-all-ingress-traffic
+
+# verify that the metadata server is blocked while others endpoints are still accessible
+k exec -it -n metadata-access pod1-xxxxxxxx-xxxxx -- curl http://192.168.100.21:32000  
+# failed to connect
+k exec -it -n metadata-access pod1-xxxxxxxx-xxxxx -- curl -l https://kubernetes.io
+# connect successfully
+
+# create another networkpolicy that allows access to the metadata server from pods with label `role=metadata-accessor`
+vi 13_metadata-allow.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: metadata-allow
+  namespace: metadata-access
+spec:
+  podSelector:
+    matchLabels:
+      role: metadata-accessor
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 192.168.100.21/32
+# esc and save
+
+k apply -f 13_metadata-allow.yaml
+
+k -n metadata-access exec <pod-with-the-label-role-metadata-accessor> -- curl 192.168.100.21:32000
+k -n metadata-access exec <pod-without-the-label> -- curl 192.168.100.21:32000
+
+# Note that for the pods with label metada-accessor, the netpol would be merged as below: 
+#     Allow outgoing traffic if:
+#     (destination is 0.0.0.0/0 but not 192.168.100.21/32) OR
+#     (destination is 192.168.100.21/32)
+...
+egress:
+- to:          # first rule
+  - ipBlock: 
+      cidr: 0.0.0.0/0
+      except:
+      - 192.168.100.21/32
+- to:         # second rule
+  - ipBlock:  
+    cidr: 192.168.100.21/32

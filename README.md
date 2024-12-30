@@ -216,7 +216,9 @@ Keywords: `constraint`, `constrainttemplate`, `rego`
 
 ### Q8
 
-The Kubernetes Dashboard is installed in Namespace kubernetes-dashboard and is configured to:
+Use context: `kubectl config use-context workload-prod`
+
+The Kubernetes Dashboard is installed in Namespace `kubernetes-dashboard` and is configured to:
 
 1. Allow users to "skip login"
 
@@ -232,99 +234,111 @@ You are asked to make it more secure by:
 
 2. Deny insecure access, enforce HTTPS (self signed certificates are ok for now)
 
-3. Add the --auto-generate-certificates argument
+3. Add the `--auto-generate-certificates` argument
 
 4. Enforce authentication using a token (with possibility to use RBAC)
 
 5. Allow only cluster internal access
 
-Keywords: `
+Keywords: `deployment.apps/kubernetes-dashboard`, `service`, `ClusterIP`, `externalTrafficPolicy`
 
 [Solution #8](./sol_08.txt)
 
 
 ### Q9
 
-Some containers need to run more secure and restricted. There is an existing AppArmor profile located at /opt/course/9/profile for this.
+Use context: `kubectl config use-context workload-prod`
 
-Install the AppArmor profile on Node cluster1-node1. Connect using ssh cluster1-node1.
+Some containers need to run more secure and restricted. There is an existing AppArmor profile located at `/opt/course/9/profile` for this.
 
-Add label security=apparmor to the Node
+Install the AppArmor profile on Node `cluster1-node1`. Connect using ssh `cluster1-node1`.
 
-Create a Deployment named apparmor in Namespace default with:
+Add label `security=apparmor` to the Node
 
-- One replica of image nginx:1.19.2
-- NodeSelector for security=apparmor
-- Single container named c1 with the AppArmor profile enabled
+Create a Deployment named `apparmor` in Namespace `default` with:
 
-The Pod might not run properly with the profile enabled. Write the logs of the Pod into /opt/course/9/logs so another team can work on getting the application running.
+- One replica of image `nginx:1.19.2`
+- NodeSelector for `security=apparmor`
+- Single container named `c1` with the AppArmor profile enabled
 
-Keywords:
+The Pod might not run properly with the profile enabled. Write the logs of the Pod into `/opt/course/9/logs` so another team can work on getting the application running.
+
+Keywords: `AppArmor`, `Restrict a Container's Access to Resources with AppArmor`
 
 [Solution #9](./sol_09.txt)
 
 
 ### Q10
 
-Team purple wants to run some of their workloads more secure. Worker node cluster1-node2 has container engine containerd already installed and it's configured to support the runsc/gvisor runtime.
+Use context: `kubectl config use-context workload-prod`
 
-Create a RuntimeClass named gvisor with handler runsc.
+Team purple wants to run some of their workloads more secure. Worker node `cluster1-node2` has container engine containerd already installed and it's configured to support the runsc/gvisor runtime.
 
-Create a Pod that uses the RuntimeClass. The Pod should be in Namespace team-purple, named gvisor-test and of image nginx:1.19.2. Make sure the Pod runs on cluster1-node2.
+Create a RuntimeClass named `gvisor` with handler `runsc`.
 
-Write the dmesg output of the successfully started Pod into /opt/course/10/gvisor-test-dmesg.
+Create a Pod that uses the RuntimeClass. The Pod should be in Namespace `team-purple`, named `gvisor-test` and of image `nginx:1.19.2`. Make sure the Pod runs on `cluster1-node2`.
 
-Keywords:
+Write the `dmesg` output of the successfully started Pod into `/opt/course/10/gvisor-test-dmesg`.
+
+Keywords: `runsc`, `gVisor`, `RuntimeClass`
 
 [Solution #10](./sol_10.txt)
 
 
 ### Q11
 
-There is an existing Secret called database-access in Namespace team-green.
+Use context: `kubectl config use-context workload-prod`
 
-Read the complete Secret content directly from ETCD (using etcdctl) and store it into /opt/course/11/etcd-secret-content. Write the plain and decoded Secret's value of key "pass" into /opt/course/11/database-password.
+There is an existing Secret called `database-access` in Namespace `team-green`.
 
-Keywords:
+Read the complete Secret content directly from ETCD (using `etcdctl`) and store it into `/opt/course/11/etcd-secret-content`. Write the plain and decoded Secret's value of key "pass" into `/opt/course/11/database-password`.
+
+Keywords: `etcdctl`, `secret`
 
 [Solution #11](./sol_11.txt)
 
 
 ### Q12
 
+Use context: `kubectl config use-context restricted@infra-pod`
+
 You're asked to investigate a possible permission escape in Namespace restricted. The context authenticates as user restricted which has only limited permissions and shouldn't be able to read Secret values.
 
 Try to find the password-key values of the Secrets secret1, secret2 and secret3 in Namespace restricted. Write the decoded plaintext values into files /opt/course/12/secret1, /opt/course/12/secret2 and /opt/course/12/secret3.
 
-Keywords:
+Keywords: `serviceaccount`, `secret`
 
 [Solution #12](./sol_12.txt)
 
 
 ### Q13
 
-There is a metadata service available at http://192.168.100.21:32000 on which Nodes can reach sensitive data, like cloud credentials for initialisation. By default, all Pods in the cluster also have access to this endpoint. The DevSecOps team has asked you to restrict access to this metadata server.
+Use context: `kubectl config use-context infra-prod`
 
-In Namespace metadata-access:
+There is a metadata service available at `http://192.168.100.21:32000` on which Nodes can reach sensitive data, like cloud credentials for initialisation. By default, all Pods in the cluster also have access to this endpoint. The DevSecOps team has asked you to restrict access to this metadata server.
 
-- Create a NetworkPolicy named metadata-deny which prevents egress to 192.168.100.21 for all Pods but still allows access to everything else
+In Namespace `metadata-access`:
 
-- Create a NetworkPolicy named metadata-allow which allows Pods having label role: metadata-accessor to access endpoint 192.168.100.21
+- Create a NetworkPolicy named `metadata-deny` which prevents egress to `192.168.100.21` for all Pods but still allows access to everything else
+
+- Create a NetworkPolicy named `metadata-allow` which allows Pods having label `role: metadata-accessor` to access endpoint `192.168.100.21`
 
 There are existing Pods in the target Namespace with which you can test your policies, but don't change their labels.
 
-Keywords:
+Keywords: `networkpolicy`, `egress.to.ipBlock.except`, `ingress`
 
 [Solution #13](./sol_13.txt)
 
 
 ### Q14
 
+Use context: `kubectl config use-context workload-prod`
+
 There are Pods in Namespace team-yellow. A security investigation noticed that some processes running in these Pods are using the Syscall kill, which is forbidden by a Team Yellow internal policy.
 
 Find the offending Pod(s) and remove these by reducing the replicas of the parent Deployment to 0.
 
-Keywords:
+Keywords: `syscall`, `scale --replicas 0`, `strace`
 
 [Solution #14](./sol_14.txt)
 
@@ -342,7 +356,7 @@ Right now it uses a default generated TLS certificate by the Nginx Ingress Contr
 
 You're asked to instead use the key and certificate provided at /opt/course/15/tls.key and /opt/course/15/tls.crt. As it's a self-signed certificate you need to use curl -k when connecting to it.
 
-Keywords:
+Keywords: `TLS_certificate`, `self_signed_certificate`
 
 [Solution #15](./sol_15.txt)
 
@@ -360,7 +374,7 @@ Do not add any new lines to the Dockerfile, just edit existing ones. The file is
 
 Tag your version as v2
 
-Keywords:
+Keywords: `image_with_no_curl`, `USER_myuser`, 
 
 [Solution #16](./sol_16.txt)
 
@@ -378,7 +392,7 @@ Alter the Policy in a way that it only stores logs:
 
 After you altered the Policy make sure to empty the log file so it only contains entries according to your changes, like using truncate -s 0 /etc/kubernetes/audit/logs/audit.log .
 
-Keywords:
+Keywords: `audit_policy`, `truncate_log`
 
 [Solution #17](./sol_17.txt)
 
@@ -391,7 +405,7 @@ Find out which Secrets in Namespace security this SA did access by looking at th
 
 Change the password to any new string of only those Secrets that were accessed by this SA.
 
-Keywords:
+Keywords: `audit`, `serviceaccount`, `change_secret_password`
 
 [Solution #18](./sol_18.txt)
 
@@ -404,7 +418,7 @@ Modify the Deployment in a way that no processes inside the container can modify
 
 Save the updated YAML under /opt/course/19/immutable-deployment-new.yaml and update the running Deployment.
 
-Keywords:
+Keywords: `immutable`, `readOnlyRootFileSystem`
 
 [Solution #19](./sol_19.txt)
 

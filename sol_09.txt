@@ -1,0 +1,55 @@
+vi /opt/course/9/profile
+# found a simple profile named very-secure which denies all file writes
+
+scp /opt/course/9/profile cluster1-node1:~/
+ssh cluster1-node1
+root@cluster1-node1:~# ls
+profile
+
+# install this profile on cluster1-node1 (quiet mode)
+root@cluster1-node1:~# apparmor_parser -q ./profile
+
+# verify the installation
+apparmor_status
+
+k label node cluster1-node1 security=apparmor
+k create deploy apparmor --image nginx:1.19.2 --dry-run=client -oyaml > 9_deploy.yaml
+vi 9_deploy.yaml
+...
+spec:
+  ...
+  template:
+    metadata:
+      ..
+    spec:                  
+      nodeSelector:           # add this
+        security: apparmor    # and add this
+      containers:
+      - image: nginx:1.19.2
+        name: c1              # change image name
+        securityContext:      # add
+          appArmorProfile:    # add
+            type: Localhost   # add
+# esc and save
+
+k create -f 9_deploy.yaml
+
+k get po -owide | grep apparmor
+k logs apparmor-xxxxxxxxxx-xxxxxxxxxx
+# we see that the pod is at CrashLoopBackOff state because the syscall mkdir() failed due to denied permission
+
+# to confirm the profile is running, inspect the containers
+ssh cluster1-node1
+root@cluster1-node1:~# crictl pods | grep apparmor
+be5c0aecee7c7<pod-id>      <created-at>     <state>     <name-of-pod>
+
+root@cluster1-node1:~# crictl ps -a | grep <pod-id>
+e4d91cbdf72fb<container-id>       Exited    c1    6     be5c0aecee7c7
+
+root@cluster1-node1:~# crictl inspect e4d91cbdf72fb | grep -i profile
+    "apparmor_profile": "localhost/very-secure",
+    "apparmorProfile": "very-secure",
+
+# Note: be fast between ps and inspect as K8s will restart the Pod periodically when in error state
+
+k logs apparmor-xxxxxxxxxx-xxxxx > /opt/course/9/logs
