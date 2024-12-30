@@ -417,7 +417,7 @@ Use apt package manager and kubeadm for this.
 
 Use ssh cluster3-controlplane1 and ssh cluster3-node1 to connect to the instances.
 
-Keywords:
+Keywords: `Upgrading kubeadm clusters`
 
 [Solution #20](./sol_20.txt)
 
@@ -433,7 +433,7 @@ The Vulnerability Scanner trivy is installed on your main terminal. Use it to sc
 
 Write all images that don't contain the vulnerabilities CVE-2020-10878 or CVE-2020-1967 into /opt/course/21/good-images.
 
-Keywords:
+Keywords: `trivy`
 
 [Solution #21](./sol_21.txt)
 
@@ -446,6 +446,6 @@ As a container security expert, you are asked to perform a manual static analysi
 
 Write the filenames which have issues into /opt/course/22/security-issues.
 
-Keywords:
+Keywords: `manual static analysis`, `credential exposure`
 
 [Solution #22](./sol_22.txt)

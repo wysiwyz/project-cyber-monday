@@ -1,0 +1,40 @@
+# https://v1-28.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
+
+# Step 1: Call kubeadm
+# determine which version to upgrade to
+apt update
+apt-cache madison kubeadm
+
+# upgrade kubeadm
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm='1.28.2-1.1' && \
+apt-mark hold kubeadm
+
+# verify downloads
+kubeadm version
+
+# verify plan
+kubeadm upgrade plan
+
+sudo kubeadm upgrade apply v1.28.2
+
+# update the second or other controlplane node
+sudo kubeadm upgrade node
+
+# Step 2: Drain the node
+kubectl drain cluster3-controlplane1 --ignore-daemonsets
+
+# update kubectl and kubelet
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet='1.28.2-1.1' kubectl='1.28.2-1.1' && \
+apt-mark hold kubelet kubectl
+
+# restart the kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+# uncordon: make the node schedulable again
+kubectl uncordon cluster3-controlplane1
+
+# TODO: is cluster3-node1 equal to cluster3-controlplane1, or do we need both nodes upgraded?
+
