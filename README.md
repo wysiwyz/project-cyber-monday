@@ -62,6 +62,10 @@ Now that the CKAD and CKA are taken down, this repository is created to keep tra
 
 [The Falco Project](https://falco.org/docs/)
 
+[Docker Best Practices](https://docs.docker.com/build/building/best-practices/)
+
+[Kubernetes Configuration Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
+
 
 ## Execution record
 
@@ -70,54 +74,58 @@ Refer to this [excel workbook](./cks_kcsa_kcna.xlsx).
 
 ## Simulator walkthrough
 
-| #  | List                |
-|----|---------------------|
-|  1 | [Question 01](#q1)  |
-|  2 | [Question 02](#q2)  |
-|  3 | [Question 03](#q3)  | 
-|  4 | [Question 04](#q4)  | 
-|  5 | [Question 05](#q5)  | 
-|  6 | [Question 06](#q6)  | 
-|  7 | [Question 07](#q7)  | 
-|  8 | [Question 08](#q8)  | 
-|  9 | [Question 09](#q9)  | 
-| 10 | [Question 10](#q10) | 
-| 11 | [Question 11](#q11) | 
-| 12 | [Question 12](#q12) | 
-| 13 | [Question 13](#q13) | 
-| 14 | [Question 14](#q14) | 
-| 15 | [Question 15](#q15) | 
-| 16 | [Question 16](#q16) | 
-| 17 | [Question 17](#q17) | 
-| 18 | [Question 18](#q18) | 
-| 19 | [Question 19](#q19) | 
-| 20 | [Question 20](#q20) | 
-| 21 | [Question 21](#q21) | 
-| 22 | [Question 22](#q22) | 
+| #  | List                | Topic                              |
+|----|---------------------|------------------------------------|
+|  1 | [Question 01](#q1)  | Contexts                           |
+|  2 | [Question 02](#q2)  | Runtime Security with Falco        |
+|  3 | [Question 03](#q3)  | Apiserver Security                 |
+|  4 | [Question 04](#q4)  | Pod Security Standard              |
+|  5 | [Question 05](#q5)  | CIS Benchmark                      |
+|  6 | [Question 06](#q6)  | Verify Platform Binaries           |
+|  7 | [Question 07](#q7)  | Open Policy Agent                  |
+|  8 | [Question 08](#q8)  | Secure Kubernetes Dashboard        |
+|  9 | [Question 09](#q9)  | AppArmor Profile                   |
+| 10 | [Question 10](#q10) | Container Runtime Sandbox gVisor   |
+| 11 | [Question 11](#q11) | Secrets in ETCD                    |
+| 12 | [Question 12](#q12) | Hack Secrets                       |
+| 13 | [Question 13](#q13) | Restrict access to Metadata Server |
+| 14 | [Question 14](#q14) | Syscall Activity                   |
+| 15 | [Question 15](#q15) | Configure TLS on Ingress           |
+| 16 | [Question 16](#q16) | Docker Image Attack Surface        |
+| 17 | [Question 17](#q17) | Audit Log Policy                   |
+| 18 | [Question 18](#q18) | Investigate Break-in via Audit Log |
+| 19 | [Question 19](#q19) | Immutable Root FileSystem          |
+| 20 | [Question 20](#q20) | Update Kubernetes                  |
+| 21 | [Question 21](#q21) | Image Vulnerability Scanning       |
+| 22 | [Question 22](#q22) | Manual Static Security Analysis    |
 
 
-### Q1
+### Q1 | Contexts
 
-You have access to multiple clusters from your main terminal through kubectl contexts. Write all context names into /opt/course/1/contexts, one per line.
+You have access to multiple clusters from your main terminal through `kubectl` contexts. Write all context names into `/opt/course/1/contexts`, one per line.
 
-From the kubeconfig extract the certificate of user restricted@infra-prod and write it decoded to /opt/course/1/cert.
+From the kubeconfig extract the certificate of user `restricted@infra-prod` and write it decoded to `/opt/course/1/cert`.
 
 Keywords: `client-certificate-data`, `base64 decode`
 
 [Solution #1](./sol_01.txt)
 
 
-### Q2
+### Q2 | Runtime Security with Falco
 
-Falco is installed with default configuration on node cluster1-node1. Connect using ssh cluster1-node1. Use it to:
+Use context: `kubectl config use-context workload-prod`
 
-Find a Pod running image nginx which creates unwanted package management processes inside its container. 
+Falco is installed with default configuration on node `cluster1-node1`. Connect using `ssh cluster1-node1`. Use it to:
 
-1. Find a Pod running image httpd which modifies /etc/passwd.
+1. Find a Pod running image `nginx` which creates unwanted package management processes inside its container. 
 
-2. Save the Falco logs for case 1 under /opt/course/2/falco.log in format:
+2. Find a Pod running image `httpd` which modifies `/etc/passwd`.
 
+Save the Falco logs for case 1 under `/opt/course/2/falco.log` in format:
+
+```
 time-with-nanosconds,container-id,container-name,user-name
+```
 
 No other information should be in any line. Collect the logs for at least 30 seconds.
 
@@ -129,9 +137,11 @@ Keywords: `Falco`, `fields for conditions and outputs`, `falco_rules`
 [Solution #2](./sol_02.txt)
 
 
-### Q3
+### Q3 | Apiserver Security
 
-You received a list from the DevSecOps team which performed a security investigation of the k8s cluster1 (workload-prod). The list states the following about the apiserver setup:
+Use context: `kubectl config use-context workload-prod`
+
+You received a list from the DevSecOps team which performed a security investigation of the k8s cluster1 (`workload-prod`). The list states the following about the apiserver setup:
 
 - Accessible through a NodePort Service
 
@@ -144,55 +154,59 @@ Keywords: `kubernetes-service-node-port`, `service/kubernetes`
 [Solution #3](./sol_03.txt)
 
 
-### Q4
+### Q4 | Pod Security Standard
 
-There is Deployment container-host-hacker in Namespace team-red which mounts /run/containerd as a hostPath volume on the Node where it's running. This means that the Pod can access various data about other containers running on the same Node.
+Use context: `kubectl config use-context workload-prod`
 
-To prevent this configure Namespace team-red to enforce the baseline Pod Security Standard. Once completed, delete the Pod of the Deployment mentioned above.
+There is Deployment `container-host-hacker` in Namespace `team-red` which mounts `/run/containerd` as a hostPath volume on the Node where it's running. This means that the Pod can access various data about other containers running on the same Node.
 
-Check the ReplicaSet events and write the event/log lines containing the reason why the Pod isn't recreated into /opt/course/4/logs.
+To prevent this configure Namespace `team-red` to `enforce` the `baseline` Pod Security Standard. Once completed, delete the Pod of the Deployment mentioned above.
+
+Check the ReplicaSet events and write the event/log lines containing the reason why the Pod isn't recreated into `/opt/course/4/logs`.
 
 Keywords: `PodSecurityStandard`
 
 [Solution #4](./sol_04.txt)
 
 
-### Q5
+### Q5 | CIS Benchmark
 
-You're ask to evaluate specific settings of cluster2 against the CIS Benchmark recommendations. Use the tool kube-bench which is already installed on the nodes.
+Use context: `kubectl config use-context infra-prod`
 
-Connect using ssh cluster2-controlplane1 and ssh cluster2-node1.
+You're ask to evaluate specific settings of cluster2 against the CIS Benchmark recommendations. Use the tool `kube-bench` which is already installed on the nodes.
+
+Connect using ssh `cluster2-controlplane1` and `ssh cluster2-node1`.
 
 On the master node ensure (correct if necessary) that the CIS recommendations are set for:
 
-1. The --profiling argument of the kube-controller-manager
+1. The `--profiling` argument of the kube-controller-manager
 
-2. The ownership of directory /var/lib/etcd
+2. The ownership of directory `/var/lib/etcd`
 
 On the worker node ensure (correct if necessary) that the CIS recommendations are set for:
 
-3. The permissions of the kubelet configuration /var/lib/kubelet/config.yaml
+3. The permissions of the kubelet configuration `/var/lib/kubelet/config.yaml`
 
-4. The --client-ca-file argument of the kubelet
+4. The `--client-ca-file` argument of the kubelet
 
 Keywords: `CIS benchmark`, `kube-bench`, `--profiling`
 
 [Solution #5](./sol_05.txt)
 
 
-### Q6
+### Q6 | Verify Platform Binaries
 
 (can be solved in any kubectl context)
 
-There are four Kubernetes server binaries located at /opt/course/6/binaries. You're provided with the following verified sha512 values for these:
+There are four Kubernetes server binaries located at `/opt/course/6/binaries`. You're provided with the following verified sha512 values for these:
 
-kube-apiserver f417c0555bc0167355589dd1afe23be9bf909bf98312b1025f12015d1b58a1c62c9908c0067a7764fa35efdac7016a9efa8711a44425dd6692906a7c283f032c
+kube-apiserver `f417c0555bc0167355589dd1afe23be9bf909bf98312b1025f12015d1b58a1c62c9908c0067a7764fa35efdac7016a9efa8711a44425dd6692906a7c283f032c`
 
-kube-controller-manager 60100cc725e91fe1a949e1b2d0474237844b5862556e25c2c655a33boa8225855ec5ee22fa4927e6c46a60d43a7c4403a27268f96fbb726307d1608b44f38a60
+kube-controller-manager `60100cc725e91fe1a949e1b2d0474237844b5862556e25c2c655a33boa8225855ec5ee22fa4927e6c46a60d43a7c4403a27268f96fbb726307d1608b44f38a60`
 
-kube-proxy 52f9d8ad045f8eee1d689619ef8ceef2d86d50c75a6a332653240d7ba5b2a114aca056d9e513984ade24358c9662714973c1960c62a5cb37dd375631c8a614c6
+kube-proxy `52f9d8ad045f8eee1d689619ef8ceef2d86d50c75a6a332653240d7ba5b2a114aca056d9e513984ade24358c9662714973c1960c62a5cb37dd375631c8a614c6`
 
-kubelet 4be40f2440619e990897cf956c32800dc96c2c983bf64519854a3309fa5aa21827991559f9c44595098e27e6f2ee4d64a3fdec6baba8a177881f20e3ec61e26c
+kubelet `4be40f2440619e990897cf956c32800dc96c2c983bf64519854a3309fa5aa21827991559f9c44595098e27e6f2ee4d64a3fdec6baba8a177881f20e3ec61e26c`
 
 Delete those binaries that don't match with the sha512 values above.
 
@@ -201,20 +215,22 @@ Keywords: `sha512sum`
 [Solution #6](./sol_06.txt)
 
 
-### Q7
+### Q7 | Open Policy Agent
 
-The Open Policy Agent and Gatekeeper have been installed to, among other things, enforce blacklisting of certain image registries. Alter the existing constraint and/or template to also blacklist images from very-bad-registry.com.
+Use context: `kubectl config use-context infra-prod`
 
-Test it by creating a single Pod using image very-bad-registry.com/image in Namespace default, it shouldn't work.
+The Open Policy Agent and Gatekeeper have been installed to, among other things, enforce blacklisting of certain image registries. Alter the existing constraint and/or template to also blacklist images from `very-bad-registry.com`.
 
-You can also verify your changes by looking at the existing Deployment untrusted in Namespace default, it uses an image from the new untrusted source. The OPA contraint should throw violation messages for this one.
+Test it by creating a single Pod using image `very-bad-registry.com/image` in Namespace `default`, it shouldn't work.
+
+You can also verify your changes by looking at the existing Deployment `untrusted` in Namespace `default`, it uses an image from the new untrusted source. The OPA contraint should throw violation messages for this one.
 
 Keywords: `constraint`, `constrainttemplate`, `rego`
 
 [Solution #6](./sol_07.txt)
 
 
-### Q8
+### Q8 | Secure Kubernetes Dashboard
 
 Use context: `kubectl config use-context workload-prod`
 
@@ -245,7 +261,7 @@ Keywords: `deployment.apps/kubernetes-dashboard`, `service`, `ClusterIP`, `exter
 [Solution #8](./sol_08.txt)
 
 
-### Q9
+### Q9 | AppArmor Profile
 
 Use context: `kubectl config use-context workload-prod`
 
@@ -268,7 +284,7 @@ Keywords: `AppArmor`, `Restrict a Container's Access to Resources with AppArmor`
 [Solution #9](./sol_09.txt)
 
 
-### Q10
+### Q10 | Container Runtime Sandbox gVisor
 
 Use context: `kubectl config use-context workload-prod`
 
@@ -285,7 +301,7 @@ Keywords: `runsc`, `gVisor`, `RuntimeClass`
 [Solution #10](./sol_10.txt)
 
 
-### Q11
+### Q11 | Secrets in ETCD
 
 Use context: `kubectl config use-context workload-prod`
 
@@ -298,7 +314,7 @@ Keywords: `etcdctl`, `secret`
 [Solution #11](./sol_11.txt)
 
 
-### Q12
+### Q12 | Hack Secrets
 
 Use context: `kubectl config use-context restricted@infra-pod`
 
@@ -311,7 +327,7 @@ Keywords: `serviceaccount`, `secret`
 [Solution #12](./sol_12.txt)
 
 
-### Q13
+### Q13 | Restrict access to Metadata Server
 
 Use context: `kubectl config use-context infra-prod`
 
@@ -330,7 +346,7 @@ Keywords: `networkpolicy`, `egress.to.ipBlock.except`, `ingress`
 [Solution #13](./sol_13.txt)
 
 
-### Q14
+### Q14 | Syscall Activity
 
 Use context: `kubectl config use-context workload-prod`
 
@@ -343,123 +359,219 @@ Keywords: `syscall`, `scale --replicas 0`, `strace`
 [Solution #14](./sol_14.txt)
 
 
-### Q15
+### Q15 | Configure TLS on Ingress
 
-In Namespace team-pink there is an existing Nginx Ingress resources named secure which accepts two paths /app and /api which point to different ClusterIP Services.
+Use context: `kubectl config use-context workload-prod`
+
+In Namespace `team-pink` there is an existing Nginx Ingress resources named `secure` which accepts two paths `/app` and `/api` which point to different ClusterIP Services.
 
 From your main terminal you can connect to it using for example:
 
-- HTTP: curl -v http://secure-ingress.test:31080/app
-- HTTPS: curl -kv https://secure-ingress.test:31443/app
+- HTTP: `curl -v http://secure-ingress.test:31080/app`
+- HTTPS: `curl -kv https://secure-ingress.test:31443/app`
 
 Right now it uses a default generated TLS certificate by the Nginx Ingress Controller.
 
-You're asked to instead use the key and certificate provided at /opt/course/15/tls.key and /opt/course/15/tls.crt. As it's a self-signed certificate you need to use curl -k when connecting to it.
+You're asked to instead use the key and certificate provided at `/opt/course/15/tls.key` and `/opt/course/15/tls.crt`. As it's a self-signed certificate you need to use `curl -k` when connecting to it.
 
 Keywords: `TLS_certificate`, `self_signed_certificate`
 
 [Solution #15](./sol_15.txt)
 
 
-### Q16
+### Q16 | Docker Image Attack Surface
 
-There is a Deployment image-verify in Namespace team-blue which runs image registry.killer.sh:5000/image-verify:v1. DevSecOps has asked you to improve this image by:
+Use context: `kubectl config use-context workload-prod`
 
-1. Changing the base image to alpine:3.12
-2. Not installing curl
-3. Updating nginx to use the version constraint &gt;=1.18.0
-4. Running the main process as user myuser
+There is a Deployment `image-verify` in Namespace `team-blue` which runs image `registry.killer.sh:5000/image-verify:v1`. DevSecOps has asked you to improve this image by:
 
-Do not add any new lines to the Dockerfile, just edit existing ones. The file is located at /opt/course/16/image/Dockerfile.
+1. Changing the base image to `alpine:3.12`
+2. Not installing `curl`
+3. Updating `nginx` to use the version constraint `>=1.18.0`
+4. Running the main process as user `myuser`
 
-Tag your version as v2
+Do not add any new lines to the Dockerfile, just edit existing ones. The file is located at `/opt/course/16/image/Dockerfile`.
 
-Keywords: `image_with_no_curl`, `USER_myuser`, 
+Tag your version as `v2`. You can build, tag and push using
+
+```sh
+cd /opt/course/16/image
+podman build -t registry.killer.sh:5000/image-verify:v2
+podman run registry.killer.sh:5000/image-verify:v2
+podman push registry.killer.sh:5000/image-verify:v2
+```
+
+Make the Deployment use your updated image tag `v2`
+
+Keywords: `apk add`, `USER_myuser`, 
 
 [Solution #16](./sol_16.txt)
 
 
-### Q17
+### Q17 | Audit Log Policy
 
-Audit Logging has been enabled in the cluster with an Audit Policy located at /etc/kubernetes/audit/policy.yaml on cluster2-controlplane1.
+Use context: `kubectl config use-context infra-prod`
+
+Audit Logging has been enabled in the cluster with an Audit Policy located at `/etc/kubernetes/audit/policy.yaml` on `cluster2-controlplane1`.
 
 Change the configuration so that only one backup of the logs is stored.
 
-Alter the Policy in a way that it only stores logs:
+Alter the *Policy* in a way that it only stores logs:
 
 1. From Secret resources, level Metadata
 2. From "system:nodes" userGroups, level RequestResponse
 
-After you altered the Policy make sure to empty the log file so it only contains entries according to your changes, like using truncate -s 0 /etc/kubernetes/audit/logs/audit.log .
+After you altered the Policy make sure to empty the log file so it only contains entries according to your changes, like using `truncate -s 0 /etc/kubernetes/audit/logs/audit.log` .
+
+> Note: You can use `jq` to render json more readable. `cat data.json | jq`
 
 Keywords: `audit_policy`, `truncate_log`
 
 [Solution #17](./sol_17.txt)
 
 
-### Q18
+### Q18 | Investigate Break-in via Audit Log
 
-Namespace security contains five Secrets of type Opaque which can be considered highly confidential. The latest Incident-Prevention-Investigation revealed that ServiceAccount p.auster had too broad access to the cluster for some time. This SA should've never had access to any Secrets in that Namespace.
+Use context: `kubectl config use-context infra-prod`
 
-Find out which Secrets in Namespace security this SA did access by looking at the Audit Logs under /opt/course/18/audit.log.
+Namespace `security` contains five Secrets of type Opaque which can be considered highly confidential. The latest Incident-Prevention-Investigation revealed that ServiceAccount `p.auster` had too broad access to the cluster for some time. This SA should've never had access to any Secrets in that Namespace.
 
-Change the password to any new string of only those Secrets that were accessed by this SA.
+Find out which Secrets in Namespace `security` this SA did access by looking at the Audit Logs under `/opt/course/18/audit`.log.
+
+Change the password to any new string of only those Secrets that were accessed by this *SA*.
+
+> NOTE: You can use `jq` to render json more readable. `cat data.json | jq`
 
 Keywords: `audit`, `serviceaccount`, `change_secret_password`
 
 [Solution #18](./sol_18.txt)
 
 
-### Q19
+### Q19 | Immutable Root FileSystem
 
-The Deployment immutable-deployment in Namespace team-purple should run immutable, it's created from file /opt/course/19/immutable-deployment.yaml. Even after a successful break-in, it shouldn't be possible for an attacker to modify the filesystem of the running container.
+Use context: `kubectl config use-context workload-prod`
 
-Modify the Deployment in a way that no processes inside the container can modify the local filesystem, only /tmp directory should be writeable. Don't modify the Docker image.
+The *Deployment* `immutable-deployment` in *Namespace* `team-purple` should run immutable, it's created from file `/opt/course/19/immutable-deployment.yaml`. Even after a successful break-in, it shouldn't be possible for an attacker to modify the filesystem of the running container.
 
-Save the updated YAML under /opt/course/19/immutable-deployment-new.yaml and update the running Deployment.
+Modify the *Deployment* in a way that no processes inside the container can modify the local filesystem, only `/tmp` directory should be writeable. Don't modify the Docker image.
+
+Save the updated YAML under `/opt/course/19/immutable-deployment-new.yaml` and update the running *Deployment*.
 
 Keywords: `immutable`, `readOnlyRootFileSystem`
 
 [Solution #19](./sol_19.txt)
 
 
-### Q20
+### Q20 | Update Kubernetes
 
-The cluster is running Kubernetes 1.27.6, update it to 1.28.2.
+Use context: `kubectl config use-context workload-stage`
 
-Use apt package manager and kubeadm for this.
+The cluster is running Kubernetes `1.27.6`, update it to `1.28.2`.
 
-Use ssh cluster3-controlplane1 and ssh cluster3-node1 to connect to the instances.
+Use `apt` package manager and `kubeadm` for this.
+
+Use `ssh cluster3-controlplane1` and ssh `cluster3-node1` to connect to the instances.
 
 Keywords: `Upgrading kubeadm clusters`
 
 [Solution #20](./sol_20.txt)
 
 
-### Q21
+### Q21 | Image Vulnerability Scanning
 
-The Vulnerability Scanner trivy is installed on your main terminal. Use it to scan the following images for known CVEs:
+(can be solved in any kubectl context)
 
-- nginx:1.16.1-alpine
-- k8s.gcr.io/kube-apiserver:v1.18.0
-- k8s.gcr.io/kube-controller-manager:v1.18.0
-- docker.io/weaveworks/weave-kube:2.7.0
+The Vulnerability Scanner `trivy` is installed on your main terminal. Use it to scan the following images for known CVEs:
 
-Write all images that don't contain the vulnerabilities CVE-2020-10878 or CVE-2020-1967 into /opt/course/21/good-images.
+- `nginx:1.16.1-alpine`
+- `k8s.gcr.io/kube-apiserver:v1.18.0`
+- `k8s.gcr.io/kube-controller-manager:v1.18.0`
+- `docker.io/weaveworks/weave-kube:2.7.0`
+
+Write all images that don't contain the vulnerabilities `CVE-2020-10878` or `CVE-2020-1967` into `/opt/course/21/good-images`.
 
 Keywords: `trivy`
 
 [Solution #21](./sol_21.txt)
 
 
-### Q22
+### Q22 | Manual Static Security Analysis
 
-The Release Engineering Team has shared some YAML manifests and Dockerfiles with you to review. The files are located under /opt/course/22/files.
+(can be solved in any kubectl context)
+
+The Release Engineering Team has shared some YAML manifests and Dockerfiles with you to review. The files are located under `/opt/course/22/files`.
 
 As a container security expert, you are asked to perform a manual static analysis and find out possible security issues with respect to unwanted credential exposure. Running processes as root is of no concern in this task.
 
-Write the filenames which have issues into /opt/course/22/security-issues.
+Write the filenames which have issues into `/opt/course/22/security-issues`.
+
+> Note: In the Dockerfile and YAML manifests, assume that the referred files, folders, secrets and volume mounts are present. Disregard syntax or logic errors.
 
 Keywords: `manual static analysis`, `credential exposure`
 
 [Solution #22](./sol_22.txt)
+
+
+# When your environment doesn't have `crictl` preconfigured, just follow these and it should be good:
+
+## Pre-requesite: recreate the issue
+
+### backup
+
+```sh
+mv /etc/crictl.yaml /etc/crictl.yaml.bak
+ls
+```
+
+### check env variables
+
+```sh
+cat ~/.bashrc | grep -i -E 'dns|coredns|crictl'
+sudo mv /run/containerd/containerd.sock /run/containerd/containerd.sock.bak
+sudo systemctl stop containerd
+```
+
+### verify
+
+```sh
+crictl ps
+
+controlplane $ sudo systemctl status containerd
+Unit crictl.service could not be found.
+
+controlplane $ crictl ps
+WARN[0000] runtime connect using default endpoints: [unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock]. As the default settings are now deprecated, you should set the endpoint instead. 
+ERRO[0000] validate service connection: validate CRI v1 runtime API for endpoint "unix:///run/containerd/containerd.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /run/containerd/containerd.sock: connect: connection refused" 
+ERRO[0000] validate service connection: validate CRI v1 runtime API for endpoint "unix:///run/crio/crio.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /run/crio/crio.sock: connect: no such file or directory" 
+ERRO[0000] validate service connection: validate CRI v1 runtime API for endpoint "unix:///var/run/cri-dockerd.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /var/run/cri-dockerd.sock: connect: no such file or directory" 
+FATA[0000] validate service connection: validate CRI v1 runtime API for endpoint "unix:///var/run/cri-dockerd.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /var/run/cri-dockerd.sock: connect: no such file or directory" 
+```
+
+## Configure containerd as CRI 🌟
+
+### 1. verify location of its socket file 
+
+```sh 
+sudo find /run -name containerd.sock
+```
+
+### 2. when you have the path (e.g. /run/containerd/containerd.sock), configure it to crictl
+
+Note:
+
+- `sudo`: exec as super user
+- `tee`: make the standard input content to be printed out on terminal, while writin in file
+- `-a`: tee as append mode (at the bottom of the file) instead of overwriting
+- compare to `cat <<EOF > file-name.yaml` (here document), the `cat <<EOF | sudo tee -a xxx.yaml` command requests higher privilege, and it's appended writing (not overwriting if the file already exist).
+
+```sh
+cat <<EOF | sudo tee -a /etc/crictl.yaml
+runtime-endpoint:
+unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+EOF
+
+sudo systemctl restart containerd
+```
+
+### 3. save the commands in the mousepad so you can paste it to other nodes

@@ -1,13 +1,24 @@
 k config use-context infra-prod
+
+# checkout existing OPA constraints
+k get crd
+
 k get constraint
 k get blacklistimages.constraints.gatekeeper.sh/pod-trusted-images
+
+# either fullname or shortname
 k get blacklistimages.constraints.gatekeeper.sh/pod-trusted-images -oyaml
+k edit blacklistimages pod-trusted-images
+# from here we see NO arguments were passed, so we edit the template
 
 k get constrainttemplate
 k get constrainttemplate blacklistimages
-k get constrainttemplate blacklistimages -oyaml
+k get constrainttemplate blacklistimages -oyaml > 7_constrainttemplate.yaml
 
 # check spec section
+
+vi 7_constrainttemplate.yaml
+...
 spec:
   crd:
     spec: 
@@ -21,22 +32,9 @@ spec:
         image := input.review.object.spec.containers[...].image
         not startswith(image, "docker-fake.io/")
         not startswith(image, "google-gcr-fake.com/")
+        not startswith(image, "very-bad-registry.com/")   # just add this one line
       }
-
-      violation[("msg": msg)] {
-        not images
-        msg := "not trusted image!"
-      }
-    target: admission.k8s.gatekeeper.sh
-
-k edit constrainttemplate blacklistImages
-# add one more line in the images block
-      images {
-        image := input.review.object.spec.containers[...].image
-        not startswith(image, "docker-fake.io/")
-        not startswith(image, "google-gcr-fake.com/")
-        not startswith(image, "very-bad-registry.com/")
-      }
+... 
 
 # esc and save
 # check if the changes are reflected
@@ -47,6 +45,8 @@ k get pods
 k describe po untrusted-5579...
 # At event message: Back-off pulling image "very-bad-registry.com/image"
 
-# create a new pod
+# create a new pod for verification
 k run test --image="very-bad-registry.com/image"
 # Error: admission webhook "validation.gatekeeper.sh" denied the request
+
+# notice that pods of the existing deployment "untrusted" will be listed as violators

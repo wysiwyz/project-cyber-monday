@@ -1,0 +1,24 @@
+k -n security get secret | grep Opaque
+cd /opt/course/18
+ls -lh
+cat audit.log | wc -l
+
+# the audit logs can be huge and it's common to limit the amount by creating an Audit Policy and to transfer the data in systems lik Elasticsearch
+cat audit.log | grep "p.auster" | wc -l
+# found 28 logs
+cat audit.log | grep "p.auster" | grep Secret | wc -l 
+# found 2
+cat audit.log | grep "p.auster" | grep Secret | grep list | wc -l 
+# zero
+cat audit.log | grep "p.auster" | grep Secret | grep get | wc -l 
+# found 2
+cat audit.log | grep "p.auster" | grep Secret | grep get | jq
+# found the secrets "vault-token" and "mysql-admin" were accessed by p.auster, need to change the passwords for those
+
+echo new-vault-pass | base64
+
+k -n security edit secret vault-token
+
+echo new-mysql-pass | base64
+
+k -n security edit secret mysql-admin

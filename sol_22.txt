@@ -1,4 +1,5 @@
 ls -la /opt/course/22/files
+# Found 3 Dockerfiles and 7 K8s resource yaml manifests. You should familiarize yourself with the best practices, links in README.md.
 
 # Delete secret token, use for example variable passed to Docker, because every `RUN`, `COPY`, `ADD' command creates a new layer. Every layer is persistent in the image.
 # To avoid image still being in cluded with the image in layer X and layer Y.

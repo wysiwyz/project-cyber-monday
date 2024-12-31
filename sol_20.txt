@@ -1,13 +1,23 @@
 # https://v1-28.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
 
+k get node
+# found one cp node and one worker node
+
+k drain cluster3-controlplane1 --ignore-daemonsets
+ssh cluster3-controlplane1
+kubelet --version
+kubeadm version
+
 # Step 1: Call kubeadm
 # determine which version to upgrade to
 apt update
 apt-cache madison kubeadm
 
-# upgrade kubeadm
-apt-mark unhold kubeadm && \
-apt-get update && apt-get install -y kubeadm='1.28.2-1.1' && \
+# upgrade kubeadm (only if it has not been installed in the required version)
+# unhold - 解除對 kubeadm 套件的保留 (hold) 狀態，允許其版本更新
+apt-mark unhold kubeadm
+apt-get update && apt-get install -y kubeadm='1.28.2-1.1' 
+# hold - 將 kubeadm 套件標記為保留狀態，防止未經計畫的升級
 apt-mark hold kubeadm
 
 # verify downloads
@@ -18,23 +28,53 @@ kubeadm upgrade plan
 
 sudo kubeadm upgrade apply v1.28.2
 
-# update the second or other controlplane node
+# verify that the required version was installed correctly
+kubeadm upgrade plan
+
+# update the second or other controlplane node (optional)
 sudo kubeadm upgrade node
 
-# Step 2: Drain the node
-kubectl drain cluster3-controlplane1 --ignore-daemonsets
+# Step 2: controlplane kubelet and kubectl
 
-# update kubectl and kubelet
+# update kubectl and kubelet - with apt-*
 apt-mark unhold kubelet kubectl && \
 apt-get update && apt-get install -y kubelet='1.28.2-1.1' kubectl='1.28.2-1.1' && \
+
+# alternative with apt
+apt update
+apt install kubelet=1.28.2-1.1 kubectl=1.28.2-1.1
+
+# set both on hold
 apt-mark hold kubelet kubectl
 
-# restart the kubelet
+# restart the kubelet - with systemctl
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
+# alernative with service
+service kubelet restart
+service kubelet status
 
+# Ready, SchedulingDisabled with the required version updated
+kubectl get node
 # uncordon: make the node schedulable again
 kubectl uncordon cluster3-controlplane1
 
-# TODO: is cluster3-node1 equal to cluster3-controlplane1, or do we need both nodes upgraded?
+# Step 3: data plane/worker node
 
+k drain cluster3-node1 --ignore-daemonsets
+ssh cluster3-node1
+apt update
+apt-mark unhold kubeadm
+apt-mark hold kubectl kubelet
+apt install kubeadm=1.28.2-1.1
+apt-mark hold kubeadm
+kubeadm upgrade node
+
+apt-mark unhold kubectl kubelet
+apt install kubelet=1.28.2-1.1 kubectl=1.28.2-1.1
+service kubelet restart
+service kubelet status
+
+k get node
+k uncordon cluster3-node1
+k get node

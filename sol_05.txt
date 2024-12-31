@@ -19,5 +19,20 @@ kube-bench run --targets=master | grep kube-controller -A3
 
 ---
 
+# check the ownership of directory `/var/lib/etcd`
+
 ls -lh /var/lib | grep etcd
+# found user root and group root
+
 stat -c %U:%G /var/lib/etcd
+# root:root
+
+kube-bench run --targets=master | grep "/var/lib/etcd" -B5
+# Let's see what has kube-bench to say about this
+
+chown etcd:etcd /var/lib/etcd
+ls -lh /var/lib | grep etcd
+# found user etcd and group etcd
+
+# verify that the test 1.1.12 is passed, run kube-bench again
+kube-bench run --targets=master | grep 1.1.12

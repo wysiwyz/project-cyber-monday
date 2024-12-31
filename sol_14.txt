@@ -32,5 +32,3 @@ ps aux | grep collector3-process
 strace -p <PID>
 
 k -n team-yellow scale deploy collector1 --replicas 0
-
-# TODO when your environment does not suppport crictl, how to resolve it?

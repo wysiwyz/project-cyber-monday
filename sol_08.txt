@@ -5,23 +5,32 @@ service/kubernetes-dashboard  ...
 
 k get nodes -owide
 # grab any of these node IP
+# 192.168.100.12 - one of the node IP
+# 30973 - one of the nodeports number for svc/kubernetes-dashboard
 curl http://192.168.100.12:30973
 
 # how to make it secure?
+# always backup
+k -n kubernetes-dashboard get deploy kubernetes-dashboard -oyaml > 8_deploy_back.yaml
 k -n kubernetes-dashboard edit deployments.apps kubernetes-dashboard
+
 # go the the section which accepts arguments
 spec:
   containers:
   - args:
     - --namespace=kubernetes-dashboard
     - --enable-skip-login=false     # delete this line or set it to false
-    - --authentication-mode=token   # change from basic to token, or you can simply delete this line
-    - --auto-generate-certificates  # add this line to generate self-signed cert
+  # - --enable-insecure-login       # delete 
+    - --authentication-mode=token   # change from basic to token, or you can just delete it (token is default)
+    - --auto-generate-certificates  # add
 
-# before changing any of these configuration, it's recommended to take a backup in case that you missed up something
+
 k -n kubernetes-dashboard get pods,svc,deployments.apps
 
+# before changing any of these configuration, it's recommended to take a backup in case that you missed up something
+k -n kubernetes-dashboard get svc kubernetes-dashboard -oyaml > 8_svc_back.yaml
 k -n kubernetes-dashboard edit svc kubernetes-dashboard
+
 # comment out the field "externalTrafficPolicy"
 ...
 spec:
@@ -49,13 +58,17 @@ spec:
 k -n kubernetes-dashbpard get svc
 curl http://192.168.100.2:30973
 curl https://kubernetes-dashboard.kubernetes-dashboard -k
-k run test --image nginx --rm -it -- bash
-root@test:/# curl https://kubernetes-dashboard.kubernetes-dashboard -k
-root@test:/# exit
 
-k -n kubernetes-dashboard get pods,svc,deployments.apps
+k run tmp --image nginx:1.19.2 --restart=Never --rm -it -- bash
+root@tmp:/# curl https://kubernetes-dashboard.kubernetes-dashboard:9090 -k
+# failed to connect
+root@tmp:/# exit
 
-k -n kubernetes-dashboard edit svc kubernetes-dashboard
+root@tmp:/# curl https://kubernetes-dashboard.kubernetes-dashboard
+# SSL cert problem
 
-k run test --image nginx --rm -it -- bash
-root@test:/# curl http://kubernetes-dashboard.kubernetes-dashboard
+root@tmp:/# curl https://kubernetes-dashboard.kubernetes-dashboard -k
+# Okay, the insecure access is disable and HTTPS works (using a self-signed certificate)
+
+curl http://192.168.100.11:32520
+# the nodeport is closed

@@ -1,0 +1,44 @@
+# get the ip address of the ingress, notice it's the same one to which secure-ingress.test is pointing to
+k -n team-pink get ing secure
+# ADDRESS 192.168.100.12
+
+ping secure-ingress.test
+# 64 bytes from cluster1-node1 (192.168.100.12)
+
+# access the paths /app and /api via HTTP
+curl http://secure-ingress.test:31080/app
+curl http://secure-ingress.test:31080/api
+
+curl https://secure-ingress.test:31443/app
+curl https://secure-ingress.test:31443/api -k
+# if we accept self-signed certificates using -k, HTTPS seems to be already working
+
+# check what kind of certificate is used by the server
+curl -kv https://secure-ingress.test:31443/api
+...
+Server certificate:
+subject: O=Acme Co; CN=Kubernetes Ingress Controller Fake Certificate 
+
+# Implement own TLS certificate
+# generate a secret using the provided key and certificate
+cd /opt/course/15
+ls
+k -n team-pink create secret tls tls-secret --key tls.key --cert tls.crt
+k -n team-pink get ing secure -oyaml > 15_ing_bak.yaml
+k -n team-pink edit ing secure
+...
+spec:
+  tls:                         # add
+    - hosts:                   # add
+      - secure-ingress.test    # add
+      secretName: tls-secret   # add
+
+# check the ingress resource again
+k -n team-pink get ing
+curl -k https://secure-ingress.test:31443/api
+This is the API Server!
+
+curl -kv https://secure-ingress.test:31443/api
+...
+* Server certificate:
+* subject: CN=secure-ingress.test; O=secure-ingress.test

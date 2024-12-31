@@ -3,46 +3,63 @@ ssh cluster1-node1
 
 # Time-saving tip: Falco related Qs are better solved at the end (complicated steps)
 systemctl status Falco
+service falco status
 
 # Verify falco config
 ls -lrt /etc/falco
 cat /etc/falco/falco.yaml | grep -i output -A3
 # syslog output,  file output, std output - now that we know the logs are being written to the syslog
 cat /var/log/syslog | grep falco | grep nginx
+cat /var/log/syslog | grep falco | grep nginx | grep process
 # found Error Package management process launched in container
 
 # At another terminal tab
 ssh cluster1-node1
+
 # grab the container id found earlier
 crictl ps -id f99cb68497f7
 crictl pods -id <grab and paste the pod id here>
 # check which namespace this pod is
+# Found the name and namespace of the first pod
 
 # Open yet another terminal tab 
 k -n team-blue get pods,deployments.apps
 
 
 cat /var/log/syslog | grep falco | grep etc
+cat /var/log/syslog | grep falco | grep httpd | grep passwd
 # found Error File below /etc opened for writing ... grab the container id
 
 crictl ps -id <paste the container id>
 crictl pods -id <paste the pod id>
-# this pod is running on team-purple
+# this pod is running on team-purple - found the name and namespace of the second pod
 
 k -n team-purple get pods,deployments.apps
 
 # At cluster1-node1
-vi /etc/falco/falco_rules.
-falco_rules.yaml    falco_rules.local.yaml 
+
+# Use Falco from command line (need to disable the service)
+service falco stop
+falco
+
+# Create logs in correct format
 # Another time-saving Falco tips - check if there are any rule-override files
+cd /etc/falco/
+grep -r "Package management process launched"
+cp /etc/falco/falco_rules.yaml /etc/falco/falco_rules.yaml_ori
+vi /etc/falco/falco_rules.yaml
 
-cp /etc/falco/falco_rules.yaml /etc/falco/falco_rules.local.yaml
-# 為啥複製出的名字跟既有的一樣
-
-vi /etc/falco/falco_rules.local.yaml
 # search /Package management process launched in container
 # get rid of login uid, commands, image specified stuff
-
+- rule: Launch Package Management Process in container
+  desc: Package management process ran inside container
+  condition: >
+    spawned_process
+    and container
+    and user.name != "_apt"
+    and package_mgmt_procs
+    and not package_mgmt_ancestor_procs
+    and not user_known_package_manager_in_container
   output: >
     Package management process launched in container ( %container.id,%container.name,%user.name )
 
@@ -51,6 +68,8 @@ The Falco Project
   - Reference
     - Falco Rules
       - Fields for conditions and outputs
+
+# https://falco.org/docs/reference/rules/supported-fields/
 
 # search for nanosecond part, got "evt.time"
 
@@ -61,8 +80,12 @@ The Falco Project
 systemctl restart falco.service
 systemctl status falco.service
 
-# look at the logs again
+# Verify: look at the logs again
 cat /var/log/syslog | grep falco | grep nginx
+
+# Alternative way for verification:
+# if the service is off and falco cli is started, run below command to check the logs
+falco | grep "Package management"
 
 # copy logs of some of the `Error Package management process launched in container` and save 
 vi /opt/course/2/falco.log
@@ -86,8 +109,17 @@ mkdir -p /opt/course/2/
 sudo touch /opt/course/2/falco.log
 sudo vi /opt/course/2/falco.log
 
+# or do this to write into falco.log
+cat /opt/course/2/falco.log.dirty | cut -d" " -f 9 > /opt/course/2/falco.log
+
+- `cut`: this tool will split input into fields using space as the delimiter (`-d" "`)
+- `-f 9`: only the 9th field is selected
+
+# Eliminate offending pods: 
 # scale the replicas of the deployments that control the offending pods to zero
+k get pod -A | grep webapi
 k -n team-blue get deploy webapi 
 k -n team-blue scale deploy webapi --replicas 0
+k get pod -A | grep rating-service
 k -n team-purple get deploy rating-service
 k -n team-purple scale deploy rating-service --replicas 0

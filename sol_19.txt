@@ -1,0 +1,34 @@
+# making the rook filesystem readonly can be done in the Docker image itself or in a pod declaration.
+k -n team-purple edit deploy -o yaml
+
+cp /opt/course/19/immutable-deployment.yaml /opt/course/19/immutable-deployment-new.yaml
+vi /opt/course/19/immutable-deployment-new.yaml
+...
+spec:
+  containers:
+  - name: busybox
+    ...
+    securityContext:                 # add
+      readonlyRootFilesystem: true   # add
+    volumeMounts:                    # add
+    - mountPath: /tmp                # add
+      name: temp-vol                 # add
+  volumes:                           # add
+  - name: temp-vol                   # add
+    emptyDir: {}                     # add
+...
+# esc and save
+
+k replace --force -f /opt/course/19/immutable-deployment-new.yaml
+deployment.apps "immutable-deployment" deleted
+deployment.apps "immutable-deployment" created
+
+# verify the required changes are propagated
+k -n team-purple exce immutable-deployment-xxxxxxxxxx-xxxxx -- touch /abc.txt
+k -n team-purple exce immutable-deployment-xxxxxxxxxx-xxxxx -- touch /var/abc.txt
+k -n team-purple exce immutable-deployment-xxxxxxxxxx-xxxxx -- touch /etc/abc.txt
+# above command also failed due to read only file system
+
+k -n team-purple exce immutable-deployment-xxxxxxxxxx-xxxxx -- touch /tmp/abc.txt
+k -n team-purple exce immutable-deployment-xxxxxxxxxx-xxxxx -- ls /tmp
+# here you see the newly created abc.txt file

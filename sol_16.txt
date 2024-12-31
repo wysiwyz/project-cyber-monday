@@ -1,0 +1,53 @@
+cd /opt/course/16/image
+cp Dockerfile Dockerfile.bak
+vi Dockerfile
+FROM alpine:3.4
+RUN apk update && apk add vim curl nginx=1.10.3=r0
+RUN addgroup -S myuser && adduser -S myuser -G myuser
+COPY ./run.sh run.sh
+RUN ["chmod:, "-x", "./run.sh"]
+USER root
+ENTRYPOINT ["/bin/sh", "./run.sh"]
+
+cat /opt/course/16/image/run.sh
+while true; do date; id; echo; sleep 1; done
+
+# check the output from the existing deployment/image-verify
+k -n team-blue logs -f -l id=image-verify
+# notice that it's running as root
+
+# update Dockerfile    
+---
+# FROM alpine:3.4  # change
+FROM alpine:3.12
+
+# RUN apk update && apk add vim curl nginx=1.10.3=r0  # change
+RUN apk update && apk add vim nginx=1.18.0
+RUN addgroup -S myuser && adduser -S myuser -G myuser
+COPY ./run.sh run.sh
+RUN ["chmod:, "-x", "./run.sh"]
+
+# USER root   # change
+USER myuser
+ENTRYPOINT ["/bin/sh", "./run.sh"]
+---
+
+# build new image
+podman build -t registry.killer.sh:5000/image-verify:v2
+
+# test our changes by running the container locally
+podman run registry.killer.sh:5000/image-verify:v2
+
+# push to image destination
+podman push registry.killer.sh:5000/image-verify:v2
+
+# update the deployment
+k -n team-blue set-image deployment/image-verify <container-name>=registry.killer.sh:5000/image-verify:v2
+
+# verify: run as myuser
+k -n team-blue logs -f -l id=image-verify
+# verify: without curl tool
+k -n team-blue exec image-verify-xxxxxxxxxx-xxxxx -- curl
+OCI runtime exec failed: unknown command
+# verify: check nginx version
+k -n team-blue exec image-verify-xxxxxxxxxx-xxxxx -- nginx -v

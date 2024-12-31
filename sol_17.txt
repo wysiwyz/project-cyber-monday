@@ -1,0 +1,44 @@
+ssh cluster2-controlplane1
+cp /etc/kubernetes/manifests/kube-apiserver.yaml ~/17_kube-apiserver.yaml
+vi /etc/kubernetes/manifests/kube-apiserver.yaml 
+...
+  - --audit-log-maxbackup=1  # change (only one backup of the logs is stored)
+# esc and save
+
+vi /etc/kubernetes/audit/policy.yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: Metatadata        # log secret resources aduits, level metadata
+  resources:               # add
+  - group: ""              # add
+    resources: ["secrets]  # add
+
+# log node related audits, level requestResponse
+- level: requestResponse
+  upserGroups: ["system:nodes"]
+
+# for everything else don't log anything
+- level: None
+
+# exit save, then we have to restart the apiserver
+cd /etc/kubernetes/manifests
+mv kube-apiserver.yaml ..
+# wait for apiserver to be gone
+watch crictl ps
+truncate -s O /etc/kubernetes/audit/logs/audit.log
+
+cat audit.log | tail | jq                 
+# check log outputs
+
+# show Secret entries
+cat audit.log | grep '"resource":"secrets"' | wc -l
+
+# confirm Secret entries are only of level metadata
+cat audit.log | grep '"resource":"secrets"' | grep -v '"level":"Metadata"' | wc -l
+
+# show RequestResponse level entries
+cat audit.log | grep -v '"level":"RequestResponse"' | wc -l
+
+# show RequestResponse level entries are only for system:nodes
+cat audit.log | grep '"level":"RequestResponse"' | grep -v "system:nodes" | wc -l
