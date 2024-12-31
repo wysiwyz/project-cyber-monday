@@ -62,6 +62,8 @@ Now that the CKAD and CKA are taken down, this repository is created to keep tra
 
 [The Falco Project](https://falco.org/docs/)
 
+[Cilium Documentation](https://docs.cilium.io/en/latest/security/policy/index.html)
+
 [Docker Best Practices](https://docs.docker.com/build/building/best-practices/)
 
 [Kubernetes Configuration Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
