@@ -44,3 +44,23 @@ cat /opt/course/22/files/deployment-redis.yaml
         - "echo $SECRET_USERNAME && echo $SECRET_PASSWORD && docker-entrypoint.sh" # NOT GOOD
 
 echo deployment-redis.yaml >> /opt/course/22/security-issues
+
+---
+
+# In file statefulset-nginx.yaml file, it's not good to expose the password directly in the environment variable definition of the container.
+cat /opt/course/22/files/statefulset-nginx.yaml
+...
+spec:
+  template:
+    spec:
+      containers:
+      - name: nginx
+        env: 
+        - name: password
+          value: MyDiReCtP@sSwOrd  # NOT GOOD
+
+echo statefulset-nginx.yaml >> /opt/course/22/security-issues
+cat /opt/course/22/security-issues
+Dockerfile-mysql
+deployment-redis.yaml
+statefulset-nginx.yaml
