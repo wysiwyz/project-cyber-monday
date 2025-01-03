@@ -68,6 +68,10 @@ Now that the CKAD and CKA are taken down, this repository is created to keep tra
 
 [Kubernetes Configuration Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
 
+[Verify the Software Bill Of Materials](https://kubernetes.io/docs/tasks/administer-cluster/verify-signed-artifacts/)
+
+[Encrypting Confidential Data at Rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/)
+
 
 ## Execution record
 

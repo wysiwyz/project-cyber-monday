@@ -39,7 +39,7 @@ k create -f 10_pod.yaml
 
 # verify that the pod uses the gvisor sandbox
 k -n team-purple get pod gvisor-test
-# use dmesg command to checkout kernel message
+# use dmesg command to checkout kernel message  🌟
 k -n team-purple exec gvisor-test -- dmesg
 
 # write the dmesg output into the file

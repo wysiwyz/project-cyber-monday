@@ -7,7 +7,7 @@ sha512sum kubelet
 echo "f417... kube-apiserver" | sha512sum --check
 # if it looks good, it will comback with OK 
 echo "60100... kube-controller-manager" | sha512sum --check
-# ...no properly formatted SHA512 checksum lines found
+# sha512sum: 'standard input': no properly formatted SHA512 checksum lines found
 echo "52f9d... kube-proxy" | sha512sum --check
 # kube-proxy: OK
 echo "4be40... kubelet" | sha512sum --check
